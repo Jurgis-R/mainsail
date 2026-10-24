@@ -309,6 +309,7 @@ export const getDefaultState = (): GuiState => {
                 showControl: true,
                 showZOffset: true,
                 showSpeedFactor: true,
+                droRefreshInterval: 250,
             },
             webcam: {
                 currentCam: {
