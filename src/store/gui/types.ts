@@ -203,6 +203,7 @@ export interface GuiState {
             showControl: boolean
             showZOffset: boolean
             showSpeedFactor: boolean
+            droRefreshInterval: number
         }
         webcam: {
             currentCam: {
