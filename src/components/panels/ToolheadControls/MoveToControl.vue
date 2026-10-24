@@ -64,6 +64,14 @@
                             @submit="sendCmd" />
                     </v-col>
                 </v-row>
+                <v-row v-if="showCoordinates" dense>
+                    <v-col :class="el.is.xsmall ? 'col-12' : 'col-6'">
+                        <v-text-field :value="livePositions.a" label="A" suffix="°" readonly dense hide-details />
+                    </v-col>
+                    <v-col :class="el.is.xsmall ? 'col-12' : 'col-6'">
+                        <v-text-field :value="livePositions.b" label="B" suffix="°" readonly dense hide-details />
+                    </v-col>
+                </v-row>
             </template>
         </responsive>
     </v-container>
@@ -95,10 +103,37 @@ export default class MoveToControl extends Mixins(BaseMixin, ControlMixin) {
     mdiCrosshairsGps = mdiCrosshairsGps
     mdiGrid = mdiGrid
 
+    droLivePosition: number[] = []
+    droTimer: number | null = null
+
     input: MoveToInputs = {
         x: { pos: '', valid: true },
         y: { pos: '', valid: true },
         z: { pos: '', valid: true },
+    }
+
+    mounted(): void {
+        this.refreshDroSnapshot()
+        this.startDroTimer()
+    }
+
+    beforeDestroy(): void {
+        if (this.droTimer !== null) window.clearInterval(this.droTimer)
+    }
+
+    @Watch('droRefreshInterval')
+    onDroRefreshIntervalChanged(): void {
+        this.startDroTimer()
+    }
+
+    refreshDroSnapshot(): void {
+        this.droLivePosition = [...(this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0])]
+    }
+
+    startDroTimer(): void {
+        if (this.droTimer !== null) window.clearInterval(this.droTimer)
+        this.refreshDroSnapshot()
+        this.droTimer = window.setInterval(() => this.refreshDroSnapshot(), this.droRefreshInterval)
     }
 
     @Watch('gcodePositions.x', { immediate: true })
@@ -130,11 +165,13 @@ export default class MoveToControl extends Mixins(BaseMixin, ControlMixin) {
     }
 
     get livePositions() {
-        const pos = this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0]
+        const pos = this.droLivePosition.length ? this.droLivePosition : (this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0])
         return {
             x: pos[0]?.toFixed(2) ?? '--',
             y: pos[1]?.toFixed(2) ?? '--',
             z: pos[2]?.toFixed(3) ?? '--',
+            a: pos[3]?.toFixed(2) ?? '--',
+            b: pos[4]?.toFixed(2) ?? '--',
         }
     }
 
