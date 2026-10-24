@@ -164,6 +164,10 @@ export default class MoveToControl extends Mixins(BaseMixin, ControlMixin) {
         return this.$store.state.printer.gcode_move?.absolute_coordinates ?? true
     }
 
+    get droRefreshInterval(): number {
+        return this.$store.state.gui.view.toolhead.droRefreshInterval ?? 250
+    }
+
     get livePositions() {
         const pos = this.droLivePosition.length ? this.droLivePosition : (this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0])
         return {
